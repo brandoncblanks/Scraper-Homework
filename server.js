@@ -1,66 +1,106 @@
-var express = require("express");
-var mongojs = require("mongojs");
+const express = require("express");
+const logger = require("morgan");
+const mongoose = require("mongoose");
 
-var axios = require("axios");
-var cheerio = require("cheerio");
+const axios = require("axios");
+const cheerio = require("cheerio");
 
-var app = express();
 
-var databaseUrl = "scraper";
-var collections = ["scrapedData"];
+const db = require("./models");
 
-var db = mongojs(databaseUrl, collections);
-db.on("error", function(error) {
-  console.log("Database Error:", error);
-});
+const PORT = 3000;
 
-app.get("/", function(req, res) {
-  res.send("Hello world");
-});
+const app = express();
 
-app.get("/all", function(req, res) {
-  db.scrapedData.find({}, function(error, found) {
-    if (error) {
-      console.log(error);
-    } else {
-      res.json(found);
-    }
-  });
-});
+
+app.use(logger("dev"));
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+app.use(express.static("public"));
+
+
+mongoose.connect("mongodb://localhost/unit18Populater", { useNewUrlParser: true });
 
 app.get("/scrape", function(req, res) {
-  axios.get("https://www.foodnetwork.com/").then(function(response) {
-    var $ = cheerio.load(response.data);
+  
+  axios.get("http://www.echojs.com/").then(function(response) {
+    
+    let $ = cheerio.load(response.data);
 
-    $(".title").each(function(i, element) {
-      var title = $(element)
+   
+    $("article h2").each(function(i, element) {
+    
+      var result = {};
+
+      result.title = $(this)
         .children("a")
         .text();
-      var link = $(element)
+      result.link = $(this)
         .children("a")
         .attr("href");
 
-      if (title && link) {
-        db.scrapedData.insert(
-          {
-            title: title,
-            link: link
-          },
-          function(err, inserted) {
-            if (err) {
-              console.log(err);
-            } else {
-              console.log(inserted);
-            }
-          }
-        );
-      }
+      db.Article.create(result)
+        .then(function(dbArticle) {
+          
+          console.log(dbArticle);
+        })
+        .catch(function(err) {
+          
+          console.log(err);
+        });
     });
+ 
+    res.send("Scrape Complete");
   });
-
-  res.send("Scrape Complete");
 });
 
-app.listen(3000, function() {
-  console.log("App running on port 3000!");
+app.get("/articles", function(req, res) {
+  
+  db.Article.find({})
+    .then(function(dbArticle) {
+     
+      res.json(dbArticle);
+    })
+    .catch(function(err) {
+    
+      res.json(err);
+    });
+});
+
+app.get("/articles/:id", function(req, res) {
+  
+  db.Article.findOne({ _id: req.params.id })
+    
+    .populate("note")
+    .then(function(dbArticle) {
+    
+      res.json(dbArticle);
+    })
+    .catch(function(err) {
+      
+      res.json(err);
+    });
+});
+
+app.post("/articles/:id", function(req, res) {
+  
+  db.Note.create(req.body)
+    .then(function(dbNote) {
+    
+      return db.Article.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
+    })
+    .then(function(dbArticle) {
+     
+      res.json(dbArticle);
+    })
+    .catch(function(err) {
+    
+      res.json(err);
+    });
+});
+
+app.listen(PORT, function() {
+  console.log("App running on port " + PORT + "!");
 });
