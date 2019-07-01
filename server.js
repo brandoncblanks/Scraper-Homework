@@ -14,7 +14,7 @@ const app = express();
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines";
 
-mongoose.connect(MONGODB_URI);
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
 app.use(logger("dev"));
 
 app.use(express.urlencoded({ extended: true }));
@@ -22,19 +22,16 @@ app.use(express.json());
 
 app.use(express.static("public"));
 
-
-mongoose.connect("mongodb://localhost/unit18Populater", { useNewUrlParser: true });
-
 app.get("/scrape", function(req, res) {
   
+  
   axios.get("http://www.foodnetwork.com/").then(function(response) {
-    
+     
     let $ = cheerio.load(response.data);
 
-   
-    $("article h2").each(function(i, element) {
-    
-      var result = {};
+    $("article h4").each(function(i, element) {
+      
+      const result = {};
 
       result.title = $(this)
         .children("a")
@@ -62,11 +59,9 @@ app.get("/articles", function(req, res) {
   
   db.Article.find({})
     .then(function(dbArticle) {
-     
       res.json(dbArticle);
     })
     .catch(function(err) {
-    
       res.json(err);
     });
 });
@@ -77,11 +72,9 @@ app.get("/articles/:id", function(req, res) {
     
     .populate("note")
     .then(function(dbArticle) {
-    
       res.json(dbArticle);
     })
-    .catch(function(err) {
-      
+    .catch(function(err) { 
       res.json(err);
     });
 });
@@ -90,15 +83,12 @@ app.post("/articles/:id", function(req, res) {
   
   db.Note.create(req.body)
     .then(function(dbNote) {
-    
       return db.Article.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
     })
     .then(function(dbArticle) {
-     
       res.json(dbArticle);
     })
     .catch(function(err) {
-    
       res.json(err);
     });
 });
