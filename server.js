@@ -25,7 +25,7 @@ mongoose.connect("mongodb://localhost/unit18Populater", { useNewUrlParser: true 
 
 app.get("/scrape", function(req, res) {
   
-  axios.get("http://www.echojs.com/").then(function(response) {
+  axios.get("http://www.foodnetwork.com/").then(function(response) {
     
     let $ = cheerio.load(response.data);
 
