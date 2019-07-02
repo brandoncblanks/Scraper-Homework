@@ -3,11 +3,11 @@ $.getJSON("/articles", function(data) {
     
     for (let i = 0; i < data.length; i++) {
       
-      $("#articles").append("<p data-id='" + data[i]._id + "'>" + data[i].title + "<br />" + data[i].link + "</p>");
+      $("#articles").append("<p>" + "<h2 data-id='" + data[i]._id + "'>" + data[i].title + "</h2>" + "<br />" + "<a href=https:" + data[i].link + " target='_blank' >" + data[i].link + "</a>" + "</p>");
     }
   });
   
-  $(document).on("click", "p", function() {
+  $(document).on("click", "h2", function() {
     
     $("#notes").empty();
     
@@ -50,16 +50,16 @@ $.getJSON("/articles", function(data) {
     $("#bodyinput").val("");
   });
 
-function getResults() {
-  $("#results").empty();
-  $.getJSON("/all", function(data) {
-    for ( i = 0; i < data.length; i++) {
-      $("#results").prepend("<p class='data-entry' data-id=" + data[i]._id + "><span class='dataTitle' data-id=" +
-        data[i]._id + ">" + data[i].title + "</span><span class=delete>X</span></p>");
-    }
-  });
-}
-getResults();
+// function getResults() {
+//   $("#results").empty();
+//   $.getJSON("/all", function(data) {
+//     for ( i = 0; i < data.length; i++) {
+//       $("#results").prepend("<p class='data-entry' data-id=" + data[i]._id + "><span class='dataTitle' data-id=" +
+//         data[i]._id + ">" + data[i].title + "</span><span class=delete>X</span></p>");
+//     }
+//   });
+// }
+// getResults();
 $(document).on("click", "#make-new", function() {
   $.ajax({
     type: "POST",

@@ -29,12 +29,13 @@ app.get("/scrape", function(req, res) {
      
     let $ = cheerio.load(response.data);
 
-    $("article h4").each(function(i, element) {
-      
+    $("h4.m-StoryCard__a-Headline").each(function(i, element) {
+     
       const result = {};
-
+     
       result.title = $(this)
         .children("a")
+        .children("span")
         .text();
       result.link = $(this)
         .children("a")
